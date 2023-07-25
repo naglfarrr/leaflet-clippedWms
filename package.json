@@ -1,0 +1,27 @@
+{
+  "name": "leaflet-clippedwms",
+  "version": "0.5.0",
+  "description": "A leaflet extension for TileLayer.WMS which allows you to use a large clip region parameter",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/naglfarrr/leaflet-clippedwms.git"
+  },
+  "keywords": [
+    "leaflet",
+    "wms",
+    "clipped",
+    "clip",
+    "tilelayer",
+    "typescript",
+    "geoserver"
+  ],
+  "author": "naglfarrr",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.1.6"
+  }
+}

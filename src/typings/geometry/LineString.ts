@@ -1,4 +1,6 @@
-class LineString {
+import { Point } from './Point';
+
+export class LineString {
   points: Point[];
 
   constructor(points: Point[]) {

@@ -1,4 +1,6 @@
 import { simplify } from '@turf/turf';
+import { Point } from './Point';
+import { LineString } from './LineString';
 
 export class Polygon implements Polygonal {
   private rings: LineString[];
@@ -27,19 +29,31 @@ export class Polygon implements Polygonal {
     return new Polygon(rings);
   }
 
-  asGeoJSON(): GeoJSON.Polygon {
-    const coordinates = this.rings.map((ring) => {
+  asArray(): number[][][] {
+    return this.rings.map((ring) => {
       return ring.points.map((point) => {
         return [point.x, point.y];
       });
     });
+  }
+
+  asGeoJSON(): GeoJSON.Polygon {
+    // const coordinates = this.rings.map((ring) => {
+    //   return ring.points.map((point) => {
+    //     return [point.x, point.y];
+    //   });
+    // });
     return {
       type: 'Polygon',
-      coordinates,
+      coordinates: this.asArray(),
     };
   }
 
   asWkt(): string {
+    return `POLYGON${this.wktWithoutTitle()}`;
+  }
+
+  wktWithoutTitle(): string {
     const coordinates = this.rings.map((ring) => {
       return ring.points.map((point) => {
         return `${point.x} ${point.y}`;
@@ -48,7 +62,7 @@ export class Polygon implements Polygonal {
     const rings = coordinates.map((ring) => {
       return `(${ring.join(',')})`;
     });
-    return `POLYGON(${rings.join(',')})`;
+    return `(${rings.join(',')})`;
   }
 
   nPoints(): number {

@@ -1,5 +1,5 @@
 import { LatLngBounds } from 'leaflet';
-import { Polygon } from './geometry/Geometry';
+import { Polygon } from './geometry/Polygon';
 
 /**
  * 区域边界

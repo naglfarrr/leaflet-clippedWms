@@ -21,13 +21,8 @@ export class ClippedWMS extends TileLayer.WMS {
   constructor(baseUrl: string, options: IClippedWMSOptions) {
     super(baseUrl, options);
 
-    if (options.clip === undefined) {
-      this.clip = undefined;
-    } else if (options.clip.type === 'Polygon') {
-      this.clip = Polygon.createFromGeoJSON(options.clip);
-    } else {
-      this.clip = MultiPolygon.createFromGeoJSON(options.clip);
-    }
+    // 去除 options 中的 clip 参数
+    delete options.clip;
   }
 
   /**
@@ -68,25 +63,28 @@ export class ClippedWMS extends TileLayer.WMS {
      * 要点：
      * 如果 bounds 完全在 clip 内，则不需要裁剪
      * 如果 clip 完全在 bounds 内，则 clip 就是裁剪边界
+     * 如果 clip 与 bounds 不相交，则不不要加载此瓦片！
      * 如果裁剪边界的点数过多，会导致 URL 过长，需要对裁剪边界进行简化
      * 如果 clip 本身点数很少，可以直接使用 clip？
      */
-    let intersection = this._intersection(this.clip, bounds);
+    const intersection = this._intersection(this.clip, bounds);
+
     if (intersection == null) {
-      return baseUrl;
+      // clip 与 bounds 不相交，不需要加载此瓦片
+      return "";
     }
 
     // 如果裁剪参数过长，需要对其进行简化
-    if (intersection.nPoints() > 10) {
-      intersection = intersection.simplify(0.001);
-    }
+    // if (intersection.nPoints() > 10) {
+    //   intersection = intersection.simplify(0.001);
+    // }
 
     // 将裁剪边界转换为 wkt 格式
     const clipWkt = intersection.asWkt();
 
     // 将 wkt 格式的裁剪边界添加到 url 中
     const url = new URL(baseUrl);
-    url.searchParams.set('clipWkt', clipWkt);
+    url.searchParams.set('clip', clipWkt);
 
     // 返回新的 url
     return url.toString();
@@ -106,12 +104,20 @@ export class ClippedWMS extends TileLayer.WMS {
     const b = bounds.asPolygon().asGeoJSON();
 
     if (turf.booleanContains(b, c)) {
+      // bounds 完全包含 clip，则实际裁剪区域就是 clip
       return clip;
+    }
+
+    if (turf.booleanContains(c, b)) {
+      // clip 完全包含 bounds，则实际裁剪区域就是 bounds（实质上此瓦片不需要裁剪）
+      return bounds.asPolygon();
+      // TODO 如何返回不需要裁剪的信号？
     }
 
     const result = turf.intersect(c, b);
 
     if (result == null) {
+      // clip 与 bounds 不相交
       return null;
     }
 
@@ -126,7 +132,7 @@ export class ClippedWMS extends TileLayer.WMS {
 /**
  * 裁剪 WMS 图层的选项
  */
-interface IClippedWMSOptions extends WMSOptions {
+export interface IClippedWMSOptions extends WMSOptions {
   /**
    * 裁剪区域的 GeoJSON 对象
    */

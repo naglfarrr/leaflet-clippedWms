@@ -9,15 +9,30 @@ export class MultiPolygon implements Polygonal {
   }
 
   static createFromGeoJSON(geojson: GeoJSON.MultiPolygon): MultiPolygon {
-    throw new Error('Not implemented');
+    const polygons = geojson.coordinates.map((polygon) => {
+      return Polygon.createFromArray(polygon);
+    });
+    return new MultiPolygon(polygons);
   }
 
   asGeoJSON(): GeoJSON.MultiPolygon {
-    throw new Error('Not implemented');
+    return {
+      type: 'MultiPolygon',
+      coordinates: this.asArray(),
+    };
+  }
+
+  asArray(): number[][][][] {
+    return this.polygons.map((polygon) => {
+      return polygon.asArray();
+    });
   }
 
   asWkt(): string {
-    throw new Error('Not implemented');
+    const polygons = this.polygons.map((polygon) => {
+      return polygon.wktWithoutTitle();
+    });
+    return `MULTIPOLYGON(${polygons.join(',')})`;
   }
 
   nPoints(): number {
